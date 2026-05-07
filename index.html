@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Colonel's Dental Clinic</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCOPKxlciL7xdoLjZFtt8W-HuIXiw67ozQ",
+  authDomain: "colonel-dental-clinic.firebaseapp.com",
+  projectId: "colonel-dental-clinic",
+  storageBucket: "colonel-dental-clinic.firebasestorage.app",
+  messagingSenderId: "356125644079",
+  appId: "1:356125644079:web:4aa8f58b3729172de53dda",
+  measurementId: "G-FP06GFRBGL"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let appointments = [];
+let weekOffset = 0;
+
+// LOAD DATA
+async function load(){
+  const snap = await getDocs(collection(db, "appointments"));
+  appointments = [];
+  snap.forEach(doc=> appointments.push(doc.data()));
+  renderCalendar();
+  renderPatients();
+}
+
+// WEEK CALCULATION
+function getWeek(){
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(today.getDate() - today.getDay() + weekOffset*7);
+
+  let days=[];
+  for(let i=0;i<7;i++){
+    const d = new Date(start);
+    d.setDate(start.getDate()+i);
+    days.push(d.toISOString().split('T')[0]);
+  }
+  return days;
+}
+
+window.nextWeek=()=>{weekOffset++;renderCalendar();}
+window.prevWeek=()=>{weekOffset--;renderCalendar();}
+
+// CALENDAR
+function renderCalendar(){
+  const week = getWeek();
+  calendar.innerHTML='';
+
+  week.forEach(day=>{
+    const col=document.createElement('div');
+    col.className='bg-white p-2 rounded shadow';
+    col.innerHTML=`<div class='font-bold text-center mb-1'>${day}</div>`;
+
+    for(let h=9;h<=18;h++){
+      const time=(h<10?'0':'')+h+':00';
+      const slot=document.createElement('div');
+      slot.className='border p-1 text-xs mb-1 cursor-pointer';
+
+      const a = appointments.find(x=>x.date===day && x.time===time);
+
+      if(a){
+      slot.innerHTML = `
+  <b>${a.name}</b><br>
+  <span style="font-size:10px">${a.treatment || ""}</span><br>
+  ₹${a.paid || 0}/${a.total || 0}
+`;  
+      } else {
+        slot.innerText=time+' +';
+        slot.onclick=()=>addAppointment(day,time);
+      }
+
+      col.appendChild(slot);
+    }
+
+    calendar.appendChild(col);
+  });
+}
+
+// ADD
+window.addAppointment = async function(date,time){
+  const name = prompt('Patient Name');
+  const phone = prompt('Phone');
+  const treatment = prompt('Treatment done');
+  const total = Number(prompt('Total Amount') || 0);
+  const paid = Number(prompt('Paid Amount') || 0);
+
+  if(!name || !phone){
+    alert('Name & Phone required');
+    return;
+  }
+
+  await addDoc(collection(db,'appointments'),{
+    name,
+    phone,
+    treatment: treatment || "",
+    total,
+    paid,
+    balance: total - paid,
+    date,
+    time
+  });
+
+  load();
+}
+
+// PATIENT LIST
+function renderPatients(){
+  const unique = [...new Map(appointments.map(a=>[a.name,a])).values()];
+
+  patientList.innerHTML='';
+
+  unique.forEach(p=>{
+    const div=document.createElement('div');
+    div.className='bg-white p-2 rounded mb-2 border';
+    div.innerHTML=`<b>${p.name}</b><br>${p.phone}`;
+div.onclick = () => showHistory(p.name);
+    patientList.appendChild(div);
+  });
+}
+
+// SEARCH
+window.searchPatient=function(){
+  const q = search.value.toLowerCase();
+
+  const filtered = appointments.filter(a=>
+    a.name.toLowerCase().includes(q) || a.phone.includes(q)
+  );
+
+  patientList.innerHTML='';
+
+  filtered.forEach(p=>{
+    const div=document.createElement('div');
+    div.className='bg-white p-2 rounded mb-2 border';
+    div.innerHTML=`<b>${p.name}</b><br>${p.phone}`;
+    patientList.appendChild(div);
+  });
+}
+
+// TABS
+window.switchTab=function(tab){
+  calendarTab.style.display = tab==='calendar'?'block':'none';
+  patientTab.style.display = tab==='patients'?'block':'none';
+}
+
+window.onload=load;
+</script>
+</head>
+
+<body class="bg-gray-100">
+
+<div class="max-w-7xl mx-auto p-4">
+<h1 class="text-2xl font-bold mb-4">Colonel's Dental Clinic</h1>
+
+<div class="flex gap-2 mb-4">
+  <button onclick="switchTab('calendar')" class="bg-blue-500 text-white px-3 py-2 rounded">Calendar</button>
+  <button onclick="switchTab('patients')" class="bg-gray-500 text-white px-3 py-2 rounded">Patients</button>
+</div>
+
+<div id="calendarTab">
+  <div class="flex justify-between mb-2">
+    <button onclick="prevWeek()">◀</button>
+    <button onclick="nextWeek()">▶</button>
+  </div>
+  <div id="calendar" class="grid grid-cols-7 gap-2"></div>
+</div>
+
+<div id="patientTab" style="display:none">
+  <div class="flex gap-2 mb-3">
+    <input id="search" placeholder="Search" class="border p-2 flex-1" />
+    <button onclick="searchPatient()" class="bg-blue-500 text-white px-3">Search</button>
+  </div>
+  <div id="patientList"></div>
+</div>
+
+</div>
+
+</body>
+</html>
+window.showHistory = function(name){
+  const visits = appointments.filter(a=>a.name===name);
+
+  let msg = `History of ${name}\\n\\n`;
+
+  visits.forEach(v=>{
+    msg += `${v.date} ${v.time}\\n`;
+    msg += `Treatment: ${v.treatment || "-"}\\n`;
+    msg += `Paid: ₹${v.paid || 0} / ${v.total || 0}\\n`;
+    msg += `Balance: ₹${v.balance || 0}\\n\\n`;
+  });
+
+  alert(msg);
+}
