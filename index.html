@@ -244,7 +244,13 @@ window.deleteAppointment = async function(id){
 }
 // PATIENT LIST
 function renderPatients(){
-  const unique = [...new Map(appointments.map(a=>[a.name,a])).values()];
+  const unique = [
+  ...new Map(
+    appointments.map(
+      a => [a.name + a.phone, a]
+    )
+  ).values()
+];
 
   patientList.innerHTML='';
 
