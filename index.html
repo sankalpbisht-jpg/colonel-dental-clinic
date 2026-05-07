@@ -37,7 +37,12 @@ let weekOffset = 0;
 async function load(){
   const snap = await getDocs(collection(db, "appointments"));
   appointments = [];
-  snap.forEach(doc=> appointments.push(doc.data()));
+ snap.forEach(d =>
+  appointments.push({
+    id: d.id,
+    ...d.data()
+  })
+);
   renderCalendar();
   renderPatients();
 }
@@ -79,7 +84,21 @@ function renderCalendar(){
 
       if(a){
       slot.innerHTML = `
-  <b>${a.name}</b><br>
+  slot.innerHTML = `
+  <b>${a.name}</b>
+
+  <div class="flex gap-1 mt-1">
+    <button onclick="editAppointment('${a.id}')"
+      class="bg-blue-500 text-white px-1 rounded text-[10px]">
+      Edit
+    </button>
+
+    <button onclick="deleteAppointment('${a.id}')"
+      class="bg-red-500 text-white px-1 rounded text-[10px]">
+      Delete
+    </button>
+  </div>
+`;<br>
   <span style="font-size:10px">${a.treatment || ""}</span><br>
   ₹${a.paid || 0}/${a.total || 0}
 `;  
@@ -121,7 +140,44 @@ window.addAppointment = async function(date,time){
 
   load();
 }
+window.editAppointment = async function(id){
 
+  const appt = appointments.find(a => a.id === id);
+
+  const newName = prompt(
+    "Edit patient name",
+    appt.name
+  );
+
+  const newPhone = prompt(
+    "Edit phone",
+    appt.phone
+  );
+
+  if(!newName || !newPhone) return;
+
+  await updateDoc(doc(db, "appointments", id), {
+    name: newName,
+    phone: newPhone
+  });
+
+  load();
+}
+
+window.deleteAppointment = async function(id){
+
+  const confirmDelete = confirm(
+    "Delete appointment?"
+  );
+
+  if(!confirmDelete) return;
+
+  await deleteDoc(
+    doc(db, "appointments", id)
+  );
+
+  load();
+}
 // PATIENT LIST
 function renderPatients(){
   const unique = [...new Map(appointments.map(a=>[a.name,a])).values()];
