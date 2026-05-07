@@ -127,19 +127,34 @@ let matchingPatients = appointments.filter(
 
 let oldPatient = null;
 
-if(matchingPatients.length === 1){
+if(matchingPatients.length >= 1){
 
-  oldPatient = matchingPatients[0];
-
-} else if(matchingPatients.length > 1){
-
-  let phoneSearch = prompt(
-    "Multiple patients found. Enter phone number"
+  let choice = prompt(
+    "Patient already exists.\\n\\n" +
+    "Type:\\n" +
+    "1 = Existing patient\\n" +
+    "2 = New patient with same name"
   );
 
-  oldPatient = matchingPatients.find(
-    p => p.phone === phoneSearch
-  );
+  if(choice === "1"){
+
+    if(matchingPatients.length === 1){
+
+      oldPatient = matchingPatients[0];
+
+    } else {
+
+      let phoneSearch = prompt(
+        "Multiple patients found. Enter phone number"
+      );
+
+      oldPatient = matchingPatients.find(
+        p => p.phone === phoneSearch
+      );
+
+    }
+
+  }
 
 }
 let phone;
