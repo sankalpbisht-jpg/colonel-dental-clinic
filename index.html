@@ -121,13 +121,51 @@ let name = prompt(
 
 if(!name) return;
 
-let oldPatient = appointments.find(
+let matchingPatients = appointments.filter(
   a => a.name.toLowerCase() === name.toLowerCase()
 );
 
-let phone = oldPatient
-  ? oldPatient.phone
-  : prompt("Phone");  const treatment = prompt('Treatment done');
+let oldPatient = null;
+
+if(matchingPatients.length === 1){
+
+  oldPatient = matchingPatients[0];
+
+} else if(matchingPatients.length > 1){
+
+  let phoneSearch = prompt(
+    "Multiple patients found. Enter phone number"
+  );
+
+  oldPatient = matchingPatients.find(
+    p => p.phone === phoneSearch
+  );
+
+}
+let phone;
+let age;
+let sex;
+
+if(oldPatient){
+
+  phone = oldPatient.phone;
+  age = oldPatient.age || "";
+  sex = oldPatient.sex || "";
+
+  alert(
+    "Existing patient found:\\n" +
+    "Phone: " + phone + "\\n" +
+    "Age: " + age + "\\n" +
+    "Sex: " + sex
+  );
+
+} else {
+
+  phone = prompt("Phone");
+  age = prompt("Age");
+  sex = prompt("Sex (M/F)");
+
+}  const treatment = prompt('Treatment done');
   const total = Number(prompt('Total Amount') || 0);
   const paid = Number(prompt('Paid Amount') || 0);
 
@@ -139,6 +177,8 @@ let phone = oldPatient
   await addDoc(collection(db,'appointments'),{
     name,
     phone,
+    age,
+    sex,   
     treatment: treatment || "",
     total,
     paid,
