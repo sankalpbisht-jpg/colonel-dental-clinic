@@ -108,9 +108,26 @@ function renderCalendar(){
 
 // ADD
 window.addAppointment = async function(date,time){
-  const name = prompt('Patient Name');
-  const phone = prompt('Phone');
-  const treatment = prompt('Treatment done');
+  const existingNames = [
+  ...new Set(
+    appointments.map(a => a.name)
+  )
+];
+
+let name = prompt(
+  "Enter patient name\\n\\nExisting:\\n" +
+  existingNames.join(", ")
+);
+
+if(!name) return;
+
+let oldPatient = appointments.find(
+  a => a.name.toLowerCase() === name.toLowerCase()
+);
+
+let phone = oldPatient
+  ? oldPatient.phone
+  : prompt("Phone");  const treatment = prompt('Treatment done');
   const total = Number(prompt('Total Amount') || 0);
   const paid = Number(prompt('Paid Amount') || 0);
 
