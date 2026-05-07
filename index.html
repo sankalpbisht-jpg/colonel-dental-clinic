@@ -84,20 +84,16 @@ function renderCalendar(){
 
       if(a){
       slot.innerHTML = `
-  slot.innerHTML = `
-  <b>${a.name}</b>
+  slot.innerHTML =
+  "<b>" + a.name + "</b><br>" +
 
-  <div class="flex gap-1 mt-1">
-    <button onclick="editAppointment('${a.id}')"
-      class="bg-blue-500 text-white px-1 rounded text-[10px]">
-      Edit
-    </button>
+  "<button onclick=\"editAppointment('" + a.id + "')\" " +
+  "class='bg-blue-500 text-white px-1 rounded text-[10px] mr-1'>" +
+  "Edit</button>" +
 
-    <button onclick="deleteAppointment('${a.id}')"
-      class="bg-red-500 text-white px-1 rounded text-[10px]">
-      Delete
-    </button>
-  </div>
+  "<button onclick=\"deleteAppointment('" + a.id + "')\" " +
+  "class='bg-red-500 text-white px-1 rounded text-[10px]'>" +
+  "Delete</button>";  </div>
 `;<br>
   <span style="font-size:10px">${a.treatment || ""}</span><br>
   ₹${a.paid || 0}/${a.total || 0}
